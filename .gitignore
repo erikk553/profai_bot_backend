@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# Env & secrets
+.env*
+!.env.example
+
+# Alembic
+alembic/versions/*.pyc
+alembic/versions/__pycache__/
+
+# Docker cruft
+*.log
+*.pid
+*.db
+*.tar
+*.bak
+
+# VS Code and friends
+.vscode/
+.idea/
+*.swp
+
+# Temp files
+docker-compose.yml
+pg_test.py
