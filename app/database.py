@@ -6,6 +6,7 @@ from config import settings
 
 
 DATABASE_URL = settings.get_db_url()
+DATABASE_URL = 'sqlite:///data/db.sqlite3'
 
 
 engine = create_engine(DATABASE_URL)

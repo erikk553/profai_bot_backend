@@ -19,7 +19,7 @@ class DBUser(Base):
     gab_id = Column(String, index=True, unique=True)
     city_id = Column(Integer, ForeignKey('cities.id'))
 
-    city = relationship("DBCity", back_populates="users")
+    # city = relationship("DBCity", back_populates="users")
 
 
 # Модель города
@@ -28,9 +28,9 @@ class DBCity(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, index=True, unique=True)
-    region = Column(String, nullable=True)
-    latitude = Column(Float, nullable=True)
-    longitude = Column(Float, nullable=True)
+    region = Column(String, nullable=True, default=None)
+    latitude = Column(Float, nullable=True, default=None)
+    longitude = Column(Float, nullable=True, default=None)
 
 
 # Модель партнера профсоюза
@@ -40,7 +40,7 @@ class DBPartner(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     # ipn = Column(String, index=True, unique=True) Если понадобится ИНН
     name = Column(String, index=True, unique=True)
-    description = Column(Text, nullable=True)
+    description = Column(Text, nullable=True, default=None)
 
 
 # Модель скидки от партнера профсоюза
@@ -50,11 +50,11 @@ class DBPartnersDiscount(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     partner_id = Column(Integer, ForeignKey('partners.id'))
     city_id = Column(Integer, ForeignKey('cities.id'))
-    discription = Column(Text, nullable=True)
-    corpcard_discount = Column(String, nullable=True)
-    rpj_discount = Column(String, nullable=True)
-    start_date = Column(Date, nullable=True)
-    end_date = Column(Date, nullable=True)
+    discription = Column(Text, nullable=True, default=None)
+    corpcard_discount = Column(String, nullable=True, default=None)
+    rpj_discount = Column(String, nullable=True, default=None)
+    start_date = Column(Date, nullable=True, default=None)
+    end_date = Column(Date, nullable=True, default=None)
 
-    partner = relationship("DBPartner", back_populates="discounts")
-    city = relationship("DBCity", back_populates="discounts")
+    # partner = relationship("DBPartner", back_populates="discounts")
+    # city = relationship("DBCity", back_populates="discounts")

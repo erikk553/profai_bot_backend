@@ -1,8 +1,30 @@
 from datetime import date
 
-# from models import Employee, Relative, Event, DiscountCard
+from models import DBUser, DBCity, DBPartner, DBPartnersDiscount
 from sqlalchemy.orm import Session
 from typing import List, Optional
+
+
+
+def get_discounts(db: Session, city: str) -> List[DBPartnersDiscount]:
+    """
+    Получаем скидки по городу
+    """
+    city = db.query(DBCity).filter(DBCity.name == city).first()
+    if not city:
+        return []
+    return db.query(DBPartnersDiscount).filter(DBPartnersDiscount.city_id == city.id).all()
+
+
+
+def db_get_discounts(db: Session, city: str) -> List[DBPartnersDiscount]:
+    """
+    Получаем скидки по городу
+    """
+    city = db.query(DBCity).filter(DBCity.name == city).first()
+    if not city:
+        return []
+    return db.query(DBPartnersDiscount).filter(DBPartnersDiscount.city_id == city.id).all()
 
 
 # def db_get_user(db: Session, gab_id: str) -> Optional[Employee]:
