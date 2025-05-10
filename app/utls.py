@@ -7,7 +7,7 @@ def load_discounts_from_excel(file_path: str) -> pd.DataFrame:
     Загружает данные о скидках из Excel файла и возвращает DataFrame.
     """
     try:
-        df = pd.read_excel(file_path)
+        df = pd.read_excel(file_path, dtype=str, engine='openpyxl')
         df = df.dropna(how='all')  # Удаляем пустые строки
         return df
     except Exception as e:
@@ -55,7 +55,7 @@ def load_discounts_to_database(df: pd.DataFrame, db) -> None:
                 db_discount = DBPartnersDiscount(
                     partner_id=db_partner.id,
                     city_id=db_city.id,
-                    discription=df_discription,
+                    # discription=df_discription,
                     corpcard_discount=df_corpcard_discount,
                     rpj_discount=df_rpj_discount
                 )
