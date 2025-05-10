@@ -4,6 +4,7 @@ from datetime import datetime
 
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from database import SessionLocal, engine
 from models import Base, DBUser, DBPartner, DBCity, DBPartnersDiscount
@@ -34,25 +35,6 @@ def startup_event():
 
 
 
-# Получаем скидки профсоюза, по городу
-@app.get('/cc_discounts', response_model=DiscountOut)
-def get_discounts(city: str = None, db: Session = Depends(get_db)):
-    if not city:
-        raise HTTPException(400, "Город не указан")
-    discounts = db_get_discounts(db, city)
-    if not discounts:
-        raise HTTPException(404, "Скидки не найдены")
-    return discounts
-
-
-# Получаем мероприятия, по городу
-
-
-
-
-
-
-
 # Работа с партнерами и скидками в БД
 
 
@@ -68,7 +50,6 @@ class PartnerCreate(BaseModel):
     name: str
     description: Optional[str] = None
     discounts: List[DiscountCreate] = []
-
 
 
 
@@ -127,3 +108,120 @@ def create_partners(partners: List[PartnerCreate], db: Session = Depends(get_db)
         created_partners.append(db_partner)
 
     return created_partners
+
+
+# Модели для вывода скидок и партнеров по городу
+class DiscountOut(BaseModel):
+    id: int
+    discription: Optional[str] = None
+    corpcard_discount: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+class PartnerOut(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    discounts: List[DiscountOut] = []
+
+    class Config:
+        orm_mode = True
+
+class CityDiscountsOut(BaseModel):
+    id: int
+    city_name: str
+    partners: List[PartnerOut] = []
+
+    class Config:
+        orm_mode = True
+
+
+@app.get('/cities_discounts', response_model=List[CityDiscountsOut])
+def get_cities_discounts(cityname: str = None, db: Session = Depends(get_db)):
+    if cityname:
+        cities = db.query(DBCity).filter(DBCity.name.ilike("%"+cityname+"%")).all()
+        if not cities:
+            raise HTTPException(404, detail="Города не найдены")
+    else:
+        cities = db.query(DBCity).all()
+    cities_discounts = []
+    for city in cities:
+        city_discounts = CityDiscountsOut(id=city.id, city_name=city.name)
+        partners = db.query(DBPartner).join(DBPartnersDiscount).filter(DBPartnersDiscount.city_id == city.id).all()
+        for partner in partners:
+            partner_out = PartnerOut(id=partner.id, name=partner.name, description=partner.description)
+            discounts = db.query(DBPartnersDiscount).filter(DBPartnersDiscount.partner_id == partner.id).filter(DBPartnersDiscount.city_id == city.id).all()
+            for discount in discounts:
+                discount_out = DiscountOut(
+                    id=discount.id,
+                    discription=discount.discription,
+                    corpcard_discount=discount.corpcard_discount
+                )
+                partner_out.discounts.append(discount_out)
+            city_discounts.partners.append(partner_out)
+        cities_discounts.append(city_discounts)
+    return cities_discounts
+
+
+@app.get('/cities_discounts/{city_id}', response_model=CityDiscountsOut)
+def get_city_discounts(city_id: int, db: Session = Depends(get_db)):
+    city = db.query(DBCity).filter(DBCity.id == city_id).first()
+    if not city:
+        raise HTTPException(404, detail="Город не найден")
+    city_discounts = CityDiscountsOut(id=city.id, city_name=city.name)
+    partners = db.query(DBPartner).join(DBPartnersDiscount).filter(DBPartnersDiscount.city_id == city.id).all()
+    for partner in partners:
+        partner_out = PartnerOut(id=partner.id, name=partner.name, description=partner.description)
+        discounts = db.query(DBPartnersDiscount).filter(DBPartnersDiscount.partner_id == partner.id).filter(DBPartnersDiscount.city_id == city.id).all()
+        for discount in discounts:
+            discount_out = DiscountOut(
+                id=discount.id,
+                discription=discount.discription,
+                corpcard_discount=discount.corpcard_discount
+            )
+            partner_out.discounts.append(discount_out)
+        city_discounts.partners.append(partner_out)
+    return city_discounts
+
+
+@app.get('/user_discounts/{user_gab_id}', response_model=CityDiscountsOut)
+def get_city_discounts(user_gab_id: str, db: Session = Depends(get_db)):
+    user = db.query(DBUser).filter(DBUser.gab_id == user_gab_id).first()
+    if not user.city_id:
+        raise HTTPException(404, detail="У пользователя не указан город")
+    city = db.query(DBCity).filter(DBCity.id == user.city_id).first()
+    if not city:
+        raise HTTPException(404, detail="Город не найден")
+    city_discounts = CityDiscountsOut(id=city.id, city_name=city.name)
+    partners = db.query(DBPartner).join(DBPartnersDiscount).filter(DBPartnersDiscount.city_id == city.id).all()
+    for partner in partners:
+        partner_out = PartnerOut(id=partner.id, name=partner.name, description=partner.description)
+        discounts = db.query(DBPartnersDiscount).filter(DBPartnersDiscount.partner_id == partner.id).filter(DBPartnersDiscount.city_id == city.id).all()
+        for discount in discounts:
+            discount_out = DiscountOut(
+                id=discount.id,
+                discription=discount.discription,
+                corpcard_discount=discount.corpcard_discount
+            )
+            partner_out.discounts.append(discount_out)
+        city_discounts.partners.append(partner_out)
+    return city_discounts
+
+
+# Получить все города
+class CityOut(BaseModel):
+    id: int
+    name: str
+    region: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
+    class Config:
+        orm_mode = True
+
+
+@app.get('/cities', response_model=List[CityOut])
+def get_cities(db: Session = Depends(get_db)) -> List[CityOut]:
+    cities = db.query(DBCity).all()
+    return cities
