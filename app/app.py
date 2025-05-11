@@ -280,7 +280,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)) -> UserOut:
 
 
 # Обновить город пользователя
-@app.put('/user/{gab_id}', response_model=UserOut)
+@app.put('/user', response_model=UserOut)
 def update_user_city(user: UserCreate, db: Session = Depends(get_db)) -> UserOut:
     gab_id, cityname = user.gab_id, user.cityname
     user = db.query(DBUser).filter(DBUser.gab_id == gab_id).first()
