@@ -19,7 +19,7 @@ class DBUser(Base):
     gab_id = Column(String, index=True, unique=True)
     city_id = Column(Integer, ForeignKey('cities.id'))
 
-    # city = relationship("DBCity", back_populates="users")
+    city = relationship("DBCity", back_populates="users")
 
 
 # Модель города
@@ -32,6 +32,10 @@ class DBCity(Base):
     latitude = Column(Float, nullable=True, default=None)
     longitude = Column(Float, nullable=True, default=None)
 
+    # partners = relationship("DBPartner", back_populates="cities")
+    discounts = relationship("DBPartnersDiscount", back_populates="city")
+    users = relationship("DBUser", back_populates="city")
+
 
 # Модель партнера профсоюза
 class DBPartner(Base):
@@ -41,6 +45,8 @@ class DBPartner(Base):
     # ipn = Column(String, index=True, unique=True) Если понадобится ИНН
     name = Column(String, index=True, unique=True)
     description = Column(Text, nullable=True, default=None)
+
+    discounts = relationship("DBPartnersDiscount", back_populates="partner")
 
 
 # Модель скидки от партнера профсоюза
@@ -56,5 +62,5 @@ class DBPartnersDiscount(Base):
     start_date = Column(Date, nullable=True, default=None)
     end_date = Column(Date, nullable=True, default=None)
 
-    # partner = relationship("DBPartner", back_populates="discounts")
-    # city = relationship("DBCity", back_populates="discounts")
+    partner = relationship("DBPartner", back_populates="discounts")
+    city = relationship("DBCity", back_populates="discounts")
