@@ -26,7 +26,6 @@ alembic/versions/__pycache__/
 *.swp
 
 # Temp files
-docker-compose.yml
 pg_test.py
 data/*
 request_testing.http
