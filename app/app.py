@@ -232,10 +232,17 @@ class UserCreate(BaseModel):
     gab_id: str
     cityname: Optional[str] = None
 
+class UserCityOut(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        orm_mode = True
+
 class UserOut(BaseModel):
     id: int
     gab_id: str
-    city_id: Optional[int] = None
+    city: UserCityOut
 
     class Config:
         orm_mode = True
