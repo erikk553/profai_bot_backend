@@ -225,3 +225,67 @@ class CityOut(BaseModel):
 def get_cities(db: Session = Depends(get_db)) -> List[CityOut]:
     cities = db.query(DBCity).all()
     return cities
+
+# Работа с пользователем
+
+class UserCreate(BaseModel):
+    gab_id: str
+    cityname: Optional[str] = None
+
+class UserOut(BaseModel):
+    id: int
+    gab_id: str
+    city_id: Optional[int] = None
+
+    class Config:
+        orm_mode = True
+
+
+# Получить данные пользователя
+@app.get('/user/{gab_id}', response_model=UserOut)
+def get_user(gab_id: str, db: Session = Depends(get_db)) -> UserOut:
+    user = db.query(DBUser).filter(DBUser.gab_id == gab_id).first()
+    if not user:
+        raise HTTPException(404, detail="Пользователь не найден")
+    return user
+
+# Создать пользователя
+@app.post('/user', response_model=UserOut)
+def create_user(user: UserCreate, db: Session = Depends(get_db)) -> UserOut:
+    gab_id, cityname = user.gab_id, user.cityname
+    user = db.query(DBUser).filter(DBUser.gab_id == gab_id).first()
+    if user:
+        raise HTTPException(400, detail="Пользователь уже существует")
+    if cityname:
+        city = db.query(DBCity).filter(DBCity.name.ilike(cityname)).first()
+        if not city:
+            city = DBCity(name=cityname)
+            db.add(city)
+            db.commit()
+            db.refresh(city)
+    else:
+        city = None
+    user = DBUser(gab_id=gab_id, city_id=city.id)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+# Обновить город пользователя
+@app.put('/user/{gab_id}', response_model=UserOut)
+def update_user_city(user: UserCreate, db: Session = Depends(get_db)) -> UserOut:
+    gab_id, cityname = user.gab_id, user.cityname
+    user = db.query(DBUser).filter(DBUser.gab_id == gab_id).first()
+    if not user:
+        raise HTTPException(404, detail="Пользователь не найден")
+    city = db.query(DBCity).filter(DBCity.name.ilike(cityname)).first()
+    if not city:
+        city = DBCity(name=cityname)
+        db.add(city)
+        db.commit()
+        db.refresh(city)
+    user.city_id = city.id
+    db.commit()
+    db.refresh(user)
+    return user
