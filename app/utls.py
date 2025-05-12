@@ -1,5 +1,6 @@
 import pandas as pd
-from models import DBPartner, DBCity, DBPartnersDiscount
+
+from app.models import DBPartner, DBCity, DBPartnersDiscount
 
 
 def load_discounts_from_excel(file_path: str) -> pd.DataFrame:

@@ -1,16 +1,17 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+from pathlib import Path
 
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from database import SessionLocal, engine
-from models import Base, DBUser, DBPartner, DBCity, DBPartnersDiscount
+from app.database import SessionLocal, engine
+from app.models import Base, DBUser, DBPartner, DBCity, DBPartnersDiscount
 # from crud import db_get_discounts_by_city
 
-from utls import load_discounts_from_excel, load_discounts_to_database
+from app.utls import load_discounts_from_excel, load_discounts_to_database
 
 
 
@@ -29,8 +30,9 @@ def get_db():
 # Подгрузка таблиц excel в БД
 @app.on_event("startup")
 def startup_event():
-    file_path = 'data/partners_discounts/partners_discounts_bb.xlsx'
-    df = load_discounts_from_excel(file_path)
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    DATA_PATH = BASE_DIR / "data" / "partners_discounts" / "partners_discounts_bb.xlsx"
+    df = load_discounts_from_excel(DATA_PATH)
     load_discounts_to_database(df, next(get_db()))
 
 

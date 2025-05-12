@@ -1,8 +1,9 @@
 from datetime import date
 
-from models import DBUser, DBCity, DBPartner, DBPartnersDiscount
 from sqlalchemy.orm import Session
 from typing import List, Optional
+
+from app.models import DBUser, DBCity, DBPartner, DBPartnersDiscount
 
 
 
