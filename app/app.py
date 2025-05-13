@@ -310,3 +310,34 @@ def get_discounts(city: CitynameIn, db: Session = Depends(get_db)) -> DiscountCi
 
     # Возвращаем DiscountCityOut
     return DiscountCityOut(city_name=city.name, partners=partners_out)
+
+# Новый post эндпоинт для получения скидок по городу
+@app.post('/discounts_city_post', response_model=DiscountCityOut)
+def get_discounts(city: CitynameIn, db: Session = Depends(get_db)) -> DiscountCityOut:
+    city = db.query(DBCity).filter(DBCity.name.ilike(city.cityname)).first()
+    if not city:
+        raise HTTPException(404, detail="Город не найден")
+    # Получаем все скидки по этому городу
+    discounts = db.query(DBPartnersDiscount).filter(
+        DBPartnersDiscount.city_id == city.id
+    ).join(DBPartnersDiscount.partner).all()
+
+    # Группируем скидки по партнёрам
+    partners_dict = {}
+    for discount in discounts:
+        partner = discount.partner
+        if partner.id not in partners_dict:
+            partners_dict[partner.id] = {
+                "name": partner.name,
+                "description": partner.description,
+                "discounts": []
+            }
+        partners_dict[partner.id]["discounts"].append({
+            "corpcard_discount": discount.corpcard_discount
+        })
+
+    # Составляем partners: List[PartnerOut]
+    partners_out = [PartnerOut(**data) for data in partners_dict.values()]
+
+    # Возвращаем DiscountCityOut
+    return DiscountCityOut(city_name=city.name, partners=partners_out)
