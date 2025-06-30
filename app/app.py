@@ -319,7 +319,9 @@ def get_discounts(city: CitynameIn, db: Session = Depends(get_db)) -> DiscountCi
         raise HTTPException(404, detail="Город не найден")
     # Получаем все скидки по этому городу
     discounts = db.query(DBPartnersDiscount).filter(
-        DBPartnersDiscount.city_id == city.id
+        DBPartnersDiscount.city_id == city.id,
+        DBPartnersDiscount.corpcard_discount.isnot(None),  # Убираем предложения без указанной скидки
+        DBPartnersDiscount.corpcard_discount != "NaN"
     ).join(DBPartnersDiscount.partner).all()
 
     # Группируем скидки по партнёрам
